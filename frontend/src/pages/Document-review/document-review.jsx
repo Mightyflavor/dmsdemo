@@ -28,7 +28,7 @@ export default function DocumentReviewPage() {
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        const response = await fetch('http://localhost:5000/docu/status/pending');
+        const response = await fetch('https://dmsdemo-1.onrender.com/docu/status/pending');
         if (!response.ok) {
           throw new Error('Failed to fetch documents');
         }
@@ -75,7 +75,7 @@ export default function DocumentReviewPage() {
 
   const updateDocumentStatus = async (newStatus, reason = '') => {
     try {
-      const response = await fetch(`http://localhost:5000/docu/${currentDocument._id}`, {
+      const response = await fetch(`https://dmsdemo-1.onrender.com/docu/${currentDocument._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export default function DocumentReviewPage() {
               </Typography>
               <Button
                 variant="contained"
-                href={`http://localhost:5000/${currentDocument.attachment}`}
+                href={`https://dmsdemo-1.onrender.com/${currentDocument.attachment}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 sx={{ mt: 2 }}

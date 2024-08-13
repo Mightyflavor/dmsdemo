@@ -29,7 +29,7 @@ export default function SuperAdminPage() {
 
     useEffect(() => {
         // Fetch users from the backend
-        axios.get('http://localhost:5000/users')
+        axios.get('https://dmsdemo-1.onrender.com/users')
             .then(response => setUsers(response.data))
             .catch(error => console.error('Error fetching users:', error));
     }, []);
@@ -40,7 +40,7 @@ export default function SuperAdminPage() {
             return;
         }
 
-        axios.post('http://localhost:5000/users', newUser)
+        axios.post('https://dmsdemo-1.onrender.com/users', newUser)
             .then(response => {
                 setUsers([...users, response.data]);
                 setNewUser({ name: '', email: '', role: 'Employee', password: '' });
@@ -54,7 +54,7 @@ export default function SuperAdminPage() {
     };
 
     const handleDeleteUser = () => {
-        axios.delete(`http://localhost:5000/users/${userToDelete}`)
+        axios.delete(`https://dmsdemo-1.onrender.com/users/${userToDelete}`)
             .then(response => {
                 setUsers(users.filter(user => user._id !== userToDelete));
                 setAnchorElDelete(null);

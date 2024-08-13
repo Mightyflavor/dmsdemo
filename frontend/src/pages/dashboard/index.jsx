@@ -14,7 +14,7 @@ export default function DashboardDefault() {
 
   useEffect(() => {
     // Fetch data from your backend API
-    axios.get('http://localhost:5000/docu')
+    axios.get('https://dmsdemo-1.onrender.com/docu')
       .then(response => {
         const documents = response.data;
 
