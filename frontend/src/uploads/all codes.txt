@@ -1,0 +1,2570 @@
+import useSWR, { mutate } from 'swr';
+import { useMemo } from 'react';
+
+const initialState = {
+  openedItem: 'dashboard',
+  openedComponent: 'buttons',
+  openedHorizontalItem: null,
+  isDashboardDrawerOpened: false,
+  isComponentDrawerOpened: true
+};
+
+export const endpoints = {
+  key: 'api/menu',
+  master: 'master',
+  dashboard: '/dashboard' // server URL
+};
+
+export function useGetMenuMaster() {
+  const { data, isLoading } = useSWR(endpoints.key + endpoints.master, () => initialState, {
+    revalidateIfStale: false,
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false
+  });
+
+  const memoizedValue = useMemo(
+    () => ({
+      menuMaster: data,
+      menuMasterLoading: isLoading
+    }),
+    [data, isLoading]
+  );
+
+  return memoizedValue;
+}
+
+export function handlerDrawerOpen(isDashboardDrawerOpened) {
+  // to update local state based on key
+
+  mutate(
+    endpoints.key + endpoints.master,
+    (currentMenuMaster) => {
+      return { ...currentMenuMaster, isDashboardDrawerOpened };
+    },
+    false
+  );
+}
+
+export function handlerActiveItem(openedItem) {
+  // to update local state based on key
+
+  mutate(
+    endpoints.key + endpoints.master,
+    (currentMenuMaster) => {
+      return { ...currentMenuMaster, openedItem };
+    },
+    false
+  );
+}
+this is ".\src\api\menu.js"
+
+// action - account reducer
+export const LOGIN = '@auth/LOGIN';
+export const LOGOUT = '@auth/LOGOUT';
+export const REGISTER = '@auth/REGISTER';
+this is "\src\contexts\auth-reducer\actions.js"
+
+// action - state management
+import { REGISTER, LOGIN, LOGOUT } from './actions';
+
+// initial state
+export const initialState = {
+  isLoggedIn: false,
+  isInitialized: false,
+  user: null
+};
+
+// ==============================|| AUTH REDUCER ||============================== //
+
+const auth = (state = initialState, action) => {
+  switch (action.type) {
+    case REGISTER: {
+      const { user } = action.payload;
+      return {
+        ...state,
+        user
+      };
+    }
+    case LOGIN: {
+      const { user } = action.payload;
+      return {
+        ...state,
+        isLoggedIn: true,
+        isInitialized: true,
+        user
+      };
+    }
+    case LOGOUT: {
+      return {
+        ...state,
+        isInitialized: true,
+        isLoggedIn: false,
+        user: null
+      };
+    }
+    default: {
+      return { ...state };
+    }
+  }
+};
+
+export default auth;
+
+this is "\src\contexts\auth-reducer\auth.js"
+
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
+
+// material-ui
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
+
+// project import
+import Drawer from './Drawer';
+import Header from './Header';
+import navigation from 'menu-items';
+import Loader from 'components/Loader';
+import Breadcrumbs from 'components/@extended/Breadcrumbs';
+
+import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+
+// ==============================|| MAIN LAYOUT ||============================== //
+
+export default function DashboardLayout() {
+  const { menuMasterLoading } = useGetMenuMaster();
+  const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+
+  useEffect(() => {
+    handlerDrawerOpen(!downXL);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [downXL]);
+
+  if (menuMasterLoading) return <Loader />;
+
+  return (
+    <Box sx={{ display: 'flex', width: '100%' }}>
+      <Header />
+      <Drawer />
+      <Box component="main" sx={{ width: 'calc(100% - 260px)', flexGrow: 1, p: { xs: 2, sm: 3 } }}>
+        <Toolbar />
+        <Breadcrumbs navigation={navigation} title />
+        <Outlet />
+      </Box>
+    </Box>
+  );
+}
+this is "\src\layout\Dashboard\index.jsx"
+
+
+// assets
+import { DashboardOutlined } from '@ant-design/icons';
+
+// icons
+const icons = {
+  DashboardOutlined
+};
+
+// ==============================|| MENU ITEMS - DASHBOARD ||============================== //
+
+const dashboard = {
+  id: 'group-dashboard',
+  title: 'Navigation',
+  type: 'group',
+  children: [
+    {
+      id: 'dashboard',
+      title: 'Dashboard',
+      type: 'item',
+      url: '/dashboard/default',
+      icon: icons.DashboardOutlined,
+      breadcrumbs: false
+    }
+  ]
+};
+
+export default dashboard;
+
+"\src\menu-items\dashboard.jsx"
+
+// project import
+import dashboard from './dashboard';
+import pages from './page';
+import utilities from './utilities';
+import support from './support';
+
+// ==============================|| MENU ITEMS ||============================== //
+
+const menuItems = {
+  items: [dashboard, utilities]
+};
+
+export default menuItems;
+
+"\src\menu-items\index.jsx"
+
+// assets
+import { LoginOutlined, ProfileOutlined } from '@ant-design/icons';
+
+// icons
+const icons = {
+  LoginOutlined,
+  ProfileOutlined
+};
+
+// ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
+
+const pages = {
+  id: 'authentication',
+  title: 'Authentication',
+  type: 'group',
+  children: [
+    {
+      id: 'login1',
+      title: 'Login',
+      type: 'item',
+      url: '/login',
+      icon: icons.LoginOutlined,
+      target: true
+    },
+    {
+      id: 'register1',
+      title: 'Register',
+      type: 'item',
+      url: '/register',
+      icon: icons.ProfileOutlined,
+      target: true
+    }
+  ]
+};
+
+export default pages;
+"\src\menu-items\page.jsx"
+
+// assets
+import { ChromeOutlined, QuestionOutlined } from '@ant-design/icons';
+
+// icons
+const icons = {
+  ChromeOutlined,
+  QuestionOutlined
+};
+
+// ==============================|| MENU ITEMS - SAMPLE PAGE & DOCUMENTATION ||============================== //
+
+const support = {
+  id: 'support',
+  title: 'Support',
+  type: 'group',
+  children: [
+    {
+      id: 'sample-page',
+      title: 'Sample Page',
+      type: 'item',
+      url: '/sample-page',
+      icon: icons.ChromeOutlined
+    },
+    {
+      id: 'documentation',
+      title: 'Documentation',
+      type: 'item',
+      url: 'https://codedthemes.gitbook.io/mantis/',
+      icon: icons.QuestionOutlined,
+      external: true,
+      target: true
+    },
+    {
+      id: 'documentation2',
+      title: 'Documentation2',
+      type: 'item',
+      url: 'https://codedthemes.gitbook.io/mantis/',
+      icon: icons.QuestionOutlined,
+      external: true,
+      target: true
+    }
+  ]
+};
+
+export default support;
+"\src\menu-items\support.jsx"
+
+// assets
+import {
+  AppstoreAddOutlined,
+  AntDesignOutlined,
+  BarcodeOutlined,
+  BgColorsOutlined,
+  FontSizeOutlined,
+  LoadingOutlined,
+  FileTextOutlined,
+  FileAddOutlined,
+  FileSearchOutlined,
+  UserAddOutlined
+} from '@ant-design/icons';
+
+// icons
+const icons = {
+  FontSizeOutlined,
+  BgColorsOutlined,
+  BarcodeOutlined,
+  AntDesignOutlined,
+  LoadingOutlined,
+  AppstoreAddOutlined,
+  FileTextOutlined,
+  FileAddOutlined,
+  FileSearchOutlined,
+  UserAddOutlined
+};
+
+// ==============================|| MENU ITEMS - UTILITIES ||============================== //
+
+const utilities = {
+  id: 'utilities',
+  title: 'Dcoument Management',
+  type: 'group',
+  children: [
+    {
+      id: 'document-upload',
+      title: 'Upload Document',
+      type: 'item',
+      url: '/document-upload',
+      icon: icons.FileAddOutlined
+    }
+    ,
+    {
+      id: 'document-review',
+      title: 'Document Review',
+      type: 'item',
+      url: '/document-review',
+      icon: icons.FileTextOutlined
+    },
+    {
+      id: 'audit-finance-interface',
+      title: 'Audit Finance Interface',
+      type: 'item',
+      url: '/audit-finance-interface',
+      icon: icons.FileSearchOutlined
+    },
+    {
+      id: 'add-user',
+      title: 'Add New User',
+      type: 'item',
+      url: '/add-user',
+      icon: icons.UserAddOutlined
+    }
+  ]
+};
+
+export default utilities;
+"\src\menu-items\utilities.jsx"
+
+import { useState, useEffect } from 'react';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Stack from '@mui/material/Stack';
+import Popover from '@mui/material/Popover';
+import MenuItem from '@mui/material/MenuItem';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import MainCard from 'components/MainCard';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import Select from '@mui/material/Select';
+import axios from 'axios';
+
+export default function SuperAdminPage() {
+    const [users, setUsers] = useState([]);
+    const [anchorElAdd, setAnchorElAdd] = useState(null);
+    const [anchorElDelete, setAnchorElDelete] = useState(null);
+    const [newUser, setNewUser] = useState({ name: '', email: '', role: 'Employee', password: '' });
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+
+    useEffect(() => {
+        // Fetch users from the backend
+        axios.get('http://localhost:5000/users')
+            .then(response => setUsers(response.data))
+            .catch(error => console.error('Error fetching users:', error));
+    }, []);
+
+    const handleAddUser = () => {
+        if (!validateEmail(newUser.email)) {
+            setSnackbar({ open: true, message: 'Invalid email format!', severity: 'error' });
+            return;
+        }
+
+        axios.post('http://localhost:5000/users', newUser)
+            .then(response => {
+                setUsers([...users, response.data]);
+                setNewUser({ name: '', email: '', role: 'Employee', password: '' });
+                setAnchorElAdd(null);
+                setSnackbar({ open: true, message: 'User added successfully!', severity: 'success' });
+            })
+            .catch(error => {
+                setSnackbar({ open: true, message: 'Error adding user!', severity: 'error' });
+                console.error('Error adding user:', error);
+            });
+    };
+
+    const handleDeleteUser = () => {
+        axios.delete(`http://localhost:5000/users/${userToDelete}`)
+            .then(response => {
+                setUsers(users.filter(user => user._id !== userToDelete));
+                setAnchorElDelete(null);
+                setSnackbar({ open: true, message: 'User deleted successfully!', severity: 'success' });
+            })
+            .catch(error => {
+                setSnackbar({ open: true, message: 'Error deleting user!', severity: 'error' });
+                console.error('Error deleting user:', error);
+            });
+    };
+
+    const handleAddClick = (event) => {
+        setAnchorElAdd(event.currentTarget);
+    };
+
+    const handleDeleteClick = (event, userId) => {
+        setUserToDelete(userId);
+        setAnchorElDelete(event.currentTarget);
+    };
+
+    const handleCloseAdd = () => {
+        setAnchorElAdd(null);
+    };
+
+    const handleCloseDelete = () => {
+        setAnchorElDelete(null);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
+    const openAdd = Boolean(anchorElAdd);
+    const openDelete = Boolean(anchorElDelete);
+
+    const validateEmail = (email) => {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    };
+
+    return (
+        <MainCard title="Super Admin Dashboard">
+            <Grid container spacing={3}>
+                <Grid item xs={12}>
+                    <Typography variant="h6" gutterBottom>
+                        User Management
+                    </Typography>
+                    <Button variant="contained" color="primary" onClick={handleAddClick}>
+                        Add User
+                    </Button>
+                </Grid>
+
+                <Grid item xs={12}>
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>ID</TableCell>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Email</TableCell>
+                                    <TableCell>Role</TableCell>
+                                    <TableCell>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {users.map((user) => (
+                                    <TableRow key={user._id}>
+                                        <TableCell>{user._id}</TableCell>
+                                        <TableCell>{user.name}</TableCell>
+                                        <TableCell>{user.email}</TableCell>
+                                        <TableCell>{user.role}</TableCell>
+                                        <TableCell>
+                                            <Button
+                                                variant="contained"
+                                                color="error"
+                                                onClick={(event) => handleDeleteClick(event, user._id)}
+                                            >
+                                                Delete
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Grid>
+            </Grid>
+
+            {/* Add User Popover */}
+            <Popover
+                open={openAdd}
+                anchorEl={anchorElAdd}
+                onClose={handleCloseAdd}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+            >
+                <Grid container spacing={2} style={{ padding: 20 }}>
+                    <Grid item xs={12}>
+                        <Typography variant="h6">Add New User</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Name"
+                            value={newUser.name}
+                            onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                            required
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Email"
+                            value={newUser.email}
+                            onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                            required
+                            error={!!newUser.email && !validateEmail(newUser.email)}
+                            helperText={!!newUser.email && !validateEmail(newUser.email) ? 'Invalid email format' : ''}
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <TextField
+                            fullWidth
+                            label="Password"
+                            type="password"
+                            value={newUser.password}
+                            onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                            required
+                        />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Select
+                            fullWidth
+                            value={newUser.role}
+                            onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                            required
+                        >
+                            <MenuItem value="Employee">Employee</MenuItem>
+                            <MenuItem value="HOD">HOD</MenuItem>
+                            <MenuItem value="Audit Department">Audit Department</MenuItem>
+                        </Select>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Stack direction="row" spacing={2}>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                onClick={handleAddUser}
+                                disabled={!newUser.name || !newUser.email || !validateEmail(newUser.email) || !newUser.password}
+                            >
+                                Add
+                            </Button>
+                            <Button variant="outlined" onClick={handleCloseAdd}>
+                                Cancel
+                            </Button>
+                        </Stack>
+                    </Grid>
+                </Grid>
+            </Popover>
+
+            {/* Delete User Popover */}
+            <Popover
+                open={openDelete}
+                anchorEl={anchorElDelete}
+                onClose={handleCloseDelete}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+            >
+                <Grid container spacing={2} style={{ padding: 20 }}>
+                    <Grid item xs={12}>
+                        <Typography variant="h6">Delete User</Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Typography>
+                            Are you sure you want to delete this user? This action cannot be undone.
+                        </Typography>
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Stack direction="row" spacing={2}>
+                            <Button variant="contained" color="error" onClick={handleDeleteUser}>
+                                Delete
+                            </Button>
+                            <Button variant="outlined" onClick={handleCloseDelete}>
+                                Cancel
+                            </Button>
+                        </Stack>
+                    </Grid>
+                </Grid>
+            </Popover>
+
+            {/* Snackbar for Notifications */}
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
+        </MainCard>
+    );
+}
+"\src\pages\Add-user\add-user.jsx"
+
+import { useState, useEffect } from 'react';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Stack from '@mui/material/Stack';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
+import MainCard from 'components/MainCard';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { format } from 'date-fns';
+
+export default function AuditFinancePage() {
+  const [documents, setDocuments] = useState([]);
+  const [currentDocument, setCurrentDocument] = useState(null);
+  const [openPaymentDialog, setOpenPaymentDialog] = useState(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [paymentDetails, setPaymentDetails] = useState({
+    amount: '',
+    paymentDate: '',
+    bankName: '',
+    transactionId: '',
+  });
+  const [selectedStatus, setSelectedStatus] = useState('');
+
+  // Fetch all documents from backend and filter out those with 'Paid' status
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/docu');
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
+        }
+        const data = await response.json();
+        // Filter out documents with the status 'Paid'
+        const filteredData = data.filter(doc => doc.status !== 'Paid');
+        setDocuments(filteredData);
+      } catch (err) {
+        console.error('Error fetching documents:', err.message);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  const handleUpdateStatus = async () => {
+    try {
+      const updatedDocument = {
+        ...currentDocument,
+        statusHistory: [...currentDocument.statusHistory, { status: selectedStatus, timestamp: new Date() }],
+      };
+      const response = await fetch(`http://localhost:5000/docu/${currentDocument._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: selectedStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update document status');
+      }
+
+      const data = await response.json();
+      setDocuments((prevDocuments) =>
+        prevDocuments.map((doc) =>
+          doc._id === data._id ? data : doc
+        )
+      );
+      setSnackbar({ open: true, message: `Status updated to ${selectedStatus}`, severity: 'success' });
+      setOpenConfirmDialog(false);
+    } catch (err) {
+      console.error('Error updating status:', err.message);
+      setSnackbar({ open: true, message: 'Error updating status', severity: 'error' });
+    }
+  };
+
+  const handleProcessPayment = async () => {
+    try {
+      const response = await fetch(`http://localhost:5000/docu/${currentDocument._id}/payment`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentDetails),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process payment');
+      }
+
+      const data = await response.json();
+      setDocuments((prevDocuments) =>
+        prevDocuments.map((doc) =>
+          doc._id === data._id ? data : doc
+        )
+      );
+      setSnackbar({ open: true, message: 'Payment processed and BPV generated!', severity: 'success' });
+      handleClosePaymentDialog();
+    } catch (err) {
+      console.error('Error processing payment:', err.message);
+      setSnackbar({ open: true, message: 'Error processing payment', severity: 'error' });
+    }
+  };
+
+  const handleOpenPaymentDialog = (document) => {
+    setCurrentDocument(document);
+    setOpenPaymentDialog(true);
+  };
+
+  const handleClosePaymentDialog = () => {
+    setOpenPaymentDialog(false);
+  };
+
+  const handleInputChange = (e) => {
+    setPaymentDetails({ ...paymentDetails, [e.target.name]: e.target.value });
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleOpenConfirmDialog = (document, status) => {
+    setCurrentDocument(document);
+    setSelectedStatus(status);
+    setOpenConfirmDialog(true);
+  };
+
+  const handleCloseConfirmDialog = () => {
+    setOpenConfirmDialog(false);
+  };
+
+  if (documents.length === 0) {
+    return <Typography>No documents found.</Typography>;
+  }
+
+  return (
+    <MainCard title="Audit/Finance Interface">
+      <Grid container spacing={3}>
+        {documents.map((document) => (
+          <Grid item xs={12} key={document._id}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  {document.name}
+                </Typography>
+                <Typography variant="body1" color="textSecondary" gutterBottom>
+                  {document.description}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Date: {format(new Date(document.date), 'PPpp')}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  Category: {document.category}
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 2 }}>
+                  Status History:
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                {document.statusHistory.map((status, index) => (
+                  <Typography key={index} variant="body2" color="textSecondary">
+                    {format(new Date(status.timestamp), 'PPpp')}: {status.status}
+                  </Typography>
+                ))}
+              </CardContent>
+              <Divider />
+              <CardContent>
+                <Stack direction="row" spacing={2} justifyContent="flex-end">
+                  <Tooltip title="Update the document's status to 'In Review by Finance Department'">
+                    <Button
+                      variant="contained"
+                      color="warning"
+                      onClick={() => handleOpenConfirmDialog(document, 'In Review by Finance Department')}
+                    >
+                      Update Status
+                    </Button>
+                  </Tooltip>
+                  {document.status === 'Processing Payment' && (
+                    <Tooltip title="Mark the document as 'Paid'">
+                      <Button variant="contained" color="success" onClick={() => handleOpenConfirmDialog(document, 'Paid')}>
+                        Mark as Paid
+                      </Button>
+                    </Tooltip>
+                  )}
+                  <Tooltip title="Process the payment for this document">
+                    <Button variant="contained" color="success" onClick={() => handleOpenPaymentDialog(document)}>
+                      Process Payment
+                    </Button>
+                  </Tooltip>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Payment Processing Dialog */}
+      <Dialog open={openPaymentDialog} onClose={handleClosePaymentDialog}>
+        <DialogTitle>Process Payment and Generate BPV</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Enter the payment details to process the payment and generate the Bank Payment Voucher (BPV).
+          </DialogContentText>
+          <TextField
+            margin="dense"
+            id="amount"
+            name="amount"
+            label="Amount"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={paymentDetails.amount}
+            onChange={handleInputChange}
+            required
+          />
+          <TextField
+            margin="dense"
+            id="paymentDate"
+            name="paymentDate"
+            label="Payment Date"
+            type="date"
+            fullWidth
+            variant="outlined"
+            value={paymentDetails.paymentDate}
+            onChange={handleInputChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            required
+          />
+          <TextField
+            margin="dense"
+            id="bankName"
+            name="bankName"
+            label="Bank Name"
+            fullWidth
+            variant="outlined"
+            value={paymentDetails.bankName}
+            onChange={handleInputChange}
+            required
+          />
+          <TextField
+            margin="dense"
+            id="transactionId"
+            name="transactionId"
+            label="Transaction ID"
+            fullWidth
+            variant="outlined"
+            value={paymentDetails.transactionId}
+            onChange={handleInputChange}
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClosePaymentDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleProcessPayment} color="success">
+            Process Payment
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Status Update Confirmation Dialog */}
+      <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
+        <DialogTitle>Confirm Status Update</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to update the status to "{selectedStatus}"? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirmDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleUpdateStatus} color="warning">
+            Update Status
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar Notification */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </MainCard>
+  );
+}
+
+"\src\pages\audit-interface\audit-interface.jsx"
+
+import PropTypes from 'prop-types';
+import React from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+// material-ui
+import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import FormHelperText from '@mui/material/FormHelperText';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+
+// third party
+import * as Yup from 'yup';
+import { Formik } from 'formik';
+
+// project import
+import AnimateButton from 'components/@extended/AnimateButton';
+
+// assets
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
+import FirebaseSocial from './FirebaseSocial';
+
+export default function AuthLogin({ isDemo = false }) {
+  const [checked, setChecked] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
+  const navigate = useNavigate();
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
+
+  const handleLogin = async (values, { setErrors, setSubmitting }) => {
+    try {
+      const response = await axios.get('http://localhost:5000/login', {
+        params: {
+          email: values.email,
+          password: values.password
+        }
+      });
+
+      if (response.data.token) {
+        // Save token in local storage or any preferred state management tool
+        localStorage.setItem('token', response.data.token);
+        
+        // Redirect to a protected route after successful login
+        navigate('/dashboard/default'); // Replace with your protected route
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrors({ submit: 'Invalid email or password' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <>
+      <Formik
+        initialValues={{
+          email: '',
+          password: '',
+          submit: null
+        }}
+        validationSchema={Yup.object().shape({
+          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          password: Yup.string().max(255).required('Password is required')
+        })}
+        onSubmit={handleLogin}
+      >
+        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+          <form noValidate onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="email-login">Email Address</InputLabel>
+                  <OutlinedInput
+                    id="email-login"
+                    type="email"
+                    value={values.email}
+                    name="email"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="Enter email address"
+                    fullWidth
+                    error={Boolean(touched.email && errors.email)}
+                  />
+                </Stack>
+                {touched.email && errors.email && (
+                  <FormHelperText error id="standard-weight-helper-text-email-login">
+                    {errors.email}
+                  </FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="password-login">Password</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.password && errors.password)}
+                    id="password-login"
+                    type={showPassword ? 'text' : 'password'}
+                    value={values.password}
+                    name="password"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                          color="secondary"
+                        >
+                          {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    placeholder="Enter password"
+                  />
+                </Stack>
+                {touched.password && errors.password && (
+                  <FormHelperText error id="standard-weight-helper-text-password-login">
+                    {errors.password}
+                  </FormHelperText>
+                )}
+              </Grid>
+
+              <Grid item xs={12} sx={{ mt: -1 }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={checked}
+                        onChange={(event) => setChecked(event.target.checked)}
+                        name="checked"
+                        color="primary"
+                        size="small"
+                      />
+                    }
+                    label={<Typography variant="h6">Keep me sign in</Typography>}
+                  />
+                  <Link variant="h6" component={RouterLink} color="text.primary" to="/forgot-password">
+                    Forgot Password?
+                  </Link>
+                </Stack>
+              </Grid>
+              {errors.submit && (
+                <Grid item xs={12}>
+                  <FormHelperText error>{errors.submit}</FormHelperText>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <AnimateButton>
+                  <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
+                    Login
+                  </Button>
+                </AnimateButton>
+              </Grid>
+              <Grid item xs={12}>
+               
+              </Grid>
+              
+            </Grid>
+          </form>
+        )}
+      </Formik>
+    </>
+  );
+}
+
+AuthLogin.propTypes = {
+  isDemo: PropTypes.bool
+};
+
+"\src\pages\authentication\auth-forms\AuthLogin.jsx"
+
+import { useEffect, useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+
+// material-ui
+import Button from '@mui/material/Button';
+import FormControl from '@mui/material/FormControl';
+import FormHelperText from '@mui/material/FormHelperText';
+import Grid from '@mui/material/Grid';
+import Link from '@mui/material/Link';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
+import InputLabel from '@mui/material/InputLabel';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+
+// third party
+import * as Yup from 'yup';
+import { Formik } from 'formik';
+
+// project import
+import AnimateButton from 'components/@extended/AnimateButton';
+import { strengthColor, strengthIndicator } from 'utils/password-strength';
+
+// assets
+import EyeOutlined from '@ant-design/icons/EyeOutlined';
+import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
+
+// ============================|| JWT - REGISTER ||============================ //
+
+export default function AuthRegister() {
+  const [level, setLevel] = useState();
+  const [showPassword, setShowPassword] = useState(false);
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleMouseDownPassword = (event) => {
+    event.preventDefault();
+  };
+
+  const changePassword = (value) => {
+    const temp = strengthIndicator(value);
+    setLevel(strengthColor(temp));
+  };
+
+  useEffect(() => {
+    changePassword('');
+  }, []);
+
+  return (
+    <>
+      <Formik
+        initialValues={{
+          firstname: '',
+          lastname: '',
+          email: '',
+          company: '',
+          password: '',
+          submit: null
+        }}
+        validationSchema={Yup.object().shape({
+          firstname: Yup.string().max(255).required('First Name is required'),
+          lastname: Yup.string().max(255).required('Last Name is required'),
+          email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
+          password: Yup.string().max(255).required('Password is required')
+        })}
+      >
+        {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
+          <form noValidate onSubmit={handleSubmit}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="firstname-signup">First Name*</InputLabel>
+                  <OutlinedInput
+                    id="firstname-login"
+                    type="firstname"
+                    value={values.firstname}
+                    name="firstname"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="John"
+                    fullWidth
+                    error={Boolean(touched.firstname && errors.firstname)}
+                  />
+                </Stack>
+                {touched.firstname && errors.firstname && (
+                  <FormHelperText error id="helper-text-firstname-signup">
+                    {errors.firstname}
+                  </FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="lastname-signup">Last Name*</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.lastname && errors.lastname)}
+                    id="lastname-signup"
+                    type="lastname"
+                    value={values.lastname}
+                    name="lastname"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="Doe"
+                    inputProps={{}}
+                  />
+                </Stack>
+                {touched.lastname && errors.lastname && (
+                  <FormHelperText error id="helper-text-lastname-signup">
+                    {errors.lastname}
+                  </FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="company-signup">Company</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.company && errors.company)}
+                    id="company-signup"
+                    value={values.company}
+                    name="company"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="Demo Inc."
+                    inputProps={{}}
+                  />
+                </Stack>
+                {touched.company && errors.company && (
+                  <FormHelperText error id="helper-text-company-signup">
+                    {errors.company}
+                  </FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="email-signup">Email Address*</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.email && errors.email)}
+                    id="email-login"
+                    type="email"
+                    value={values.email}
+                    name="email"
+                    onBlur={handleBlur}
+                    onChange={handleChange}
+                    placeholder="demo@company.com"
+                    inputProps={{}}
+                  />
+                </Stack>
+                {touched.email && errors.email && (
+                  <FormHelperText error id="helper-text-email-signup">
+                    {errors.email}
+                  </FormHelperText>
+                )}
+              </Grid>
+              <Grid item xs={12}>
+                <Stack spacing={1}>
+                  <InputLabel htmlFor="password-signup">Password</InputLabel>
+                  <OutlinedInput
+                    fullWidth
+                    error={Boolean(touched.password && errors.password)}
+                    id="password-signup"
+                    type={showPassword ? 'text' : 'password'}
+                    value={values.password}
+                    name="password"
+                    onBlur={handleBlur}
+                    onChange={(e) => {
+                      handleChange(e);
+                      changePassword(e.target.value);
+                    }}
+                    endAdornment={
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleClickShowPassword}
+                          onMouseDown={handleMouseDownPassword}
+                          edge="end"
+                          color="secondary"
+                        >
+                          {showPassword ? <EyeOutlined /> : <EyeInvisibleOutlined />}
+                        </IconButton>
+                      </InputAdornment>
+                    }
+                    placeholder="******"
+                    inputProps={{}}
+                  />
+                </Stack>
+                {touched.password && errors.password && (
+                  <FormHelperText error id="helper-text-password-signup">
+                    {errors.password}
+                  </FormHelperText>
+                )}
+                <FormControl fullWidth sx={{ mt: 2 }}>
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item>
+                      <Box sx={{ bgcolor: level?.color, width: 85, height: 8, borderRadius: '7px' }} />
+                    </Grid>
+                    <Grid item>
+                      <Typography variant="subtitle1" fontSize="0.75rem">
+                        {level?.label}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="body2">
+                  By Signing up, you agree to our &nbsp;
+                  <Link variant="subtitle2" component={RouterLink} to="#">
+                    Terms of Service
+                  </Link>
+                  &nbsp; and &nbsp;
+                  <Link variant="subtitle2" component={RouterLink} to="#">
+                    Privacy Policy
+                  </Link>
+                </Typography>
+              </Grid>
+              {errors.submit && (
+                <Grid item xs={12}>
+                  <FormHelperText error>{errors.submit}</FormHelperText>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <AnimateButton>
+                  <Button disableElevation disabled={isSubmitting} fullWidth size="large" type="submit" variant="contained" color="primary">
+                    Create Account
+                  </Button>
+                </AnimateButton>
+              </Grid>
+            </Grid>
+          </form>
+        )}
+      </Formik>
+    </>
+  );
+}
+"\src\pages\authentication\auth-forms\AuthRegister.jsx"
+
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+
+// assets
+import Google from 'assets/images/icons/google.svg';
+import Twitter from 'assets/images/icons/twitter.svg';
+import Facebook from 'assets/images/icons/facebook.svg';
+
+// ==============================|| FIREBASE - SOCIAL BUTTON ||============================== //
+
+export default function FirebaseSocial() {
+  const downSM = useMediaQuery((theme) => theme.breakpoints.down('sm'));
+
+  // @ts-ignore
+  const googleHandler = async () => {
+    // login || singup
+  };
+
+  const twitterHandler = async () => {
+    // login || singup
+  };
+
+  const facebookHandler = async () => {
+    // login || singup
+  };
+
+  return (
+    <Stack
+      direction="row"
+      spacing={{ xs: 1, sm: 2 }}
+      justifyContent={{ xs: 'space-around', sm: 'space-between' }}
+      sx={{ '& .MuiButton-startIcon': { mr: { xs: 0, sm: 1 }, ml: { xs: 0, sm: -0.5 } } }}
+    >
+      <Button
+        variant="outlined"
+        color="secondary"
+        fullWidth={!downSM}
+        startIcon={<img src={Google} alt="Google" />}
+        onClick={googleHandler}
+      >
+        {!downSM && 'Google'}
+      </Button>
+      <Button
+        variant="outlined"
+        color="secondary"
+        fullWidth={!downSM}
+        startIcon={<img src={Twitter} alt="Twitter" />}
+        onClick={twitterHandler}
+      >
+        {!downSM && 'Twitter'}
+      </Button>
+      <Button
+        variant="outlined"
+        color="secondary"
+        fullWidth={!downSM}
+        startIcon={<img src={Facebook} alt="Facebook" />}
+        onClick={facebookHandler}
+      >
+        {!downSM && 'Facebook'}
+      </Button>
+    </Stack>
+  );
+}
+"\src\pages\authentication\auth-forms\FirebaseSocial.jsx"
+
+import PropTypes from 'prop-types';
+
+// material-ui
+import Box from '@mui/material/Box';
+
+// project import
+import MainCard from 'components/MainCard';
+
+// ==============================|| AUTHENTICATION - CARD WRAPPER ||============================== //
+
+export default function AuthCard({ children, ...other }) {
+  return (
+    <MainCard
+      sx={{ maxWidth: { xs: 400, lg: 475 }, margin: { xs: 2.5, md: 3 }, '& > *': { flexGrow: 1, flexBasis: '50%' } }}
+      content={false}
+      {...other}
+      border={false}
+      boxShadow
+      shadow={(theme) => theme.customShadows.z1}
+    >
+      <Box sx={{ p: { xs: 2, sm: 3, md: 4, xl: 5 } }}>{children}</Box>
+    </MainCard>
+  );
+}
+
+AuthCard.propTypes = { children: PropTypes.node, other: PropTypes.any };
+"\src\pages\authentication\AuthCard.jsx"
+
+import PropTypes from 'prop-types';
+
+// material-ui
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+
+// project import
+import AuthFooter from 'components/cards/AuthFooter';
+import Logo from 'components/logo';
+import AuthCard from './AuthCard';
+
+// assets
+import AuthBackground from 'assets/images/auth/AuthBackground';
+
+// ==============================|| AUTHENTICATION - WRAPPER ||============================== //
+
+export default function AuthWrapper({ children }) {
+  return (
+    <Box sx={{ minHeight: '100vh' }}>
+      <AuthBackground />
+      <Grid container direction="column" justifyContent="flex-end" sx={{ minHeight: '100vh' }}>
+        <Grid item xs={12} sx={{ ml: 3, mt: 3 }}>
+          <Logo />
+        </Grid>
+        <Grid item xs={12}>
+          <Grid
+            item
+            xs={12}
+            container
+            justifyContent="center"
+            alignItems="center"
+            sx={{ minHeight: { xs: 'calc(100vh - 210px)', sm: 'calc(100vh - 134px)', md: 'calc(100vh - 112px)' } }}
+          >
+            <Grid item>
+              <AuthCard>{children}</AuthCard>
+            </Grid>
+          </Grid>
+        </Grid>
+        <Grid item xs={12} sx={{ m: 3, mt: 1 }}>
+          <AuthFooter />
+        </Grid>
+      </Grid>
+    </Box>
+  );
+}
+
+AuthWrapper.propTypes = { children: PropTypes.node };
+
+"\src\pages\authentication\AuthWrapper.jsx"
+
+import { Link } from 'react-router-dom';
+
+// material-ui
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+
+// project import
+import AuthWrapper from './AuthWrapper';
+import AuthLogin from './auth-forms/AuthLogin';
+
+// ================================|| LOGIN ||================================ //
+
+export default function Login() {
+  return (
+    <AuthWrapper>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
+            <Typography variant="h3">Login</Typography>
+            <Typography component={Link} to="/register" variant="body1" sx={{ textDecoration: 'none' }} color="primary">
+              Don&apos;t have an account?
+            </Typography>
+          </Stack>
+        </Grid>
+        <Grid item xs={12}>
+          <AuthLogin />
+        </Grid>
+      </Grid>
+    </AuthWrapper>
+  );
+}
+"\src\pages\authentication\login.jsx"
+
+import { Link } from 'react-router-dom';
+
+// material-ui
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+
+// project import
+import AuthWrapper from './AuthWrapper';
+import AuthRegister from './auth-forms/AuthRegister';
+
+// ================================|| REGISTER ||================================ //
+
+export default function Register() {
+  return (
+    <AuthWrapper>
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
+            <Typography variant="h3">Sign up</Typography>
+            <Typography component={Link} to="/login" variant="body1" sx={{ textDecoration: 'none' }} color="primary">
+              Already have an account?
+            </Typography>
+          </Stack>
+        </Grid>
+        <Grid item xs={12}>
+          <AuthRegister />
+        </Grid>
+      </Grid>
+    </AuthWrapper>
+  );
+}
+"\src\pages\authentication\register.jsx"
+
+import { useState, useEffect } from 'react';
+import Grid from '@mui/material/Grid';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Stack from '@mui/material/Stack';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+import Snackbar from '@mui/material/Snackbar'; // Import Snackbar
+import Alert from '@mui/material/Alert'; // Import Alert for styling
+import { useTheme } from '@mui/material/styles';
+import MainCard from 'components/MainCard';
+
+export default function DocumentReviewPage() {
+  const theme = useTheme();
+  const [documents, setDocuments] = useState([]);
+  const [currentDocument, setCurrentDocument] = useState(null);
+  const [status, setStatus] = useState('');
+  const [openRejectDialog, setOpenRejectDialog] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false); // State to manage Snackbar visibility
+  const [snackbarMessage, setSnackbarMessage] = useState(''); // State to manage Snackbar message
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // State to manage Snackbar severity
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/docu/status/none');
+        if (!response.ok) {
+          throw new Error('Failed to fetch documents');
+        }
+        const data = await response.json();
+        setDocuments(data);
+      } catch (err) {
+        console.error('Error fetching documents:', err.message);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
+
+  const handleApprove = async () => {
+    try {
+      await updateDocumentStatus('Approved');
+      setStatus('Approved');
+      setSnackbarMessage('Document approved successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true); // Show the Snackbar
+    } catch (err) {
+      console.error('Error approving document:', err.message);
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      await updateDocumentStatus('Rejected', rejectReason);
+      setStatus('Rejected');
+      alert('Document rejected!');
+      setOpenRejectDialog(false);
+    } catch (err) {
+      console.error('Error rejecting document:', err.message);
+    }
+  };
+
+  const handleCloseReview = () => {
+    setSnackbarMessage('Review session closed.');
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true); // Show the Snackbar for close action
+  };
+
+  const updateDocumentStatus = async (newStatus, reason = '') => {
+    try {
+      const response = await fetch(`http://localhost:5000/docu/${currentDocument._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newStatus,
+          reason,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update document status');
+      }
+
+      const updatedDocument = await response.json();
+      setDocuments((prevDocuments) =>
+        prevDocuments.map((doc) =>
+          doc._id === updatedDocument._id ? updatedDocument : doc
+        )
+      );
+      setCurrentDocument(updatedDocument);
+    } catch (err) {
+      console.error('Error updating document status:', err.message);
+    }
+  };
+
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false); // Close the Snackbar
+  };
+
+  const handleRejectOpen = () => {
+    setOpenRejectDialog(true);
+  };
+
+  const handleRejectClose = () => {
+    setOpenRejectDialog(false);
+  };
+
+  const handleDocumentSelect = (document) => {
+    setCurrentDocument(document);
+    setStatus(document.status);
+  };
+
+  if (documents.length === 0) {
+    return <Typography>No documents with status 'none' found.</Typography>;
+  }
+
+  return (
+    <MainCard title="Document Review">
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Typography variant="h6">Select a document to review:</Typography>
+          {documents.map((doc) => (
+            <Button key={doc._id} onClick={() => handleDocumentSelect(doc)} sx={{ mb: 2 }}>
+              {doc.name}
+            </Button>
+          ))}
+        </Grid>
+
+        {currentDocument && (
+          <>
+            <Grid item xs={12}>
+              <Typography variant="h5" gutterBottom>
+                {currentDocument.name}
+              </Typography>
+              <Typography variant="body1" color="textSecondary" gutterBottom>
+                {currentDocument.description}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Date: {currentDocument.date}
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Category: {currentDocument.category}
+              </Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Extra Notes: {currentDocument.extraNotes}
+              </Typography>
+              <Button
+                variant="contained"
+                href={`http://localhost:5000/${currentDocument.attachment}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{ mt: 2 }}
+              >
+                View Attachment
+              </Button>
+              <Typography
+                variant="h6"
+                sx={{
+                  color:
+                    status === 'Approved'
+                      ? theme.palette.success.main
+                      : status === 'Rejected'
+                      ? theme.palette.error.main
+                      : theme.palette.warning.main,
+                  mt: 2,
+                }}
+              >
+                Status: {status}
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Stack direction="row" spacing={2}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  onClick={handleApprove}
+                  disabled={status !== 'none'}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleRejectOpen}
+                  disabled={status !== 'none'}
+                >
+                  Reject
+                </Button>
+                <Button variant="outlined" onClick={handleCloseReview}>
+                  Close
+                </Button>
+              </Stack>
+            </Grid>
+          </>
+        )}
+      </Grid>
+
+      {/* Snackbar for Document Approved or Review Closed */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Reject Reason Dialog */}
+      <Dialog open={openRejectDialog} onClose={handleRejectClose}>
+        <DialogTitle>Reject Document</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Please provide a reason for rejecting this document.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="rejectReason"
+            label="Reject Reason"
+            fullWidth
+            multiline
+            rows={4}
+            variant="outlined"
+            value={rejectReason}
+            onChange={(e) => setRejectReason(e.target.value)}
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleRejectClose} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleReject} color="error" disabled={!rejectReason}>
+            Reject
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </MainCard>
+  );
+}
+"\src\pages\Document-review\document-review.jsx"
+
+import { useState } from 'react';
+import TextField from '@mui/material/TextField';
+import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import MenuItem from '@mui/material/MenuItem';
+import MainCard from 'components/MainCard';
+import Snackbar from '@mui/material/Snackbar';  // Import Snackbar from MUI
+import MuiAlert from '@mui/material/Alert';  // Import Alert for the Snackbar
+
+// ==============================|| DOCUMENT UPLOAD PAGE ||============================== //
+
+export default function DocumentUploadPage() {
+  const [documentDetails, setDocumentDetails] = useState({
+    name: '',
+    description: '',
+    date: '',
+    extraNotes: '',
+    category: '',
+    attachment: null,
+  });
+
+  const [successMessage, setSuccessMessage] = useState(false); // State for success Snackbar
+  const [errorMessage, setErrorMessage] = useState(''); // State for error message
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setDocumentDetails((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    setDocumentDetails((prevState) => ({
+      ...prevState,
+      attachment: e.target.files[0],
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    // Validate that an attachment is provided
+    if (!documentDetails.attachment) {
+      setErrorMessage('Attachment is required.');
+      return;
+    }
+
+    console.log('Document Details:', documentDetails);
+  
+    const formData = new FormData();
+    formData.append('name', documentDetails.name);
+    formData.append('description', documentDetails.description);
+    formData.append('date', documentDetails.date);
+    formData.append('category', documentDetails.category);
+    formData.append('extraNotes', documentDetails.extraNotes);
+  
+    if (documentDetails.attachment) {
+      formData.append('attachment', documentDetails.attachment);
+    }
+  
+    try {
+      const response = await fetch('http://localhost:5000/docu', {
+        method: 'POST',
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text(); // Read the response body
+        throw new Error(`Network response was not ok: ${errorText}`);
+      }
+  
+      const result = await response.json();
+      console.log('Upload Result:', result);
+      
+      setSuccessMessage(true); // Show success Snackbar
+      setDocumentDetails({
+        name: '',
+        description: '',
+        date: '',
+        extraNotes: '',
+        category: '',
+        attachment: null,
+      }); // Reset the form fields
+
+    } catch (err) {
+      setErrorMessage(`Error uploading document: ${err.message}`); // Set error message
+      console.error('Error uploading document:', err.message);
+    }
+  };
+
+  // Handle closing the Snackbar
+  const handleClose = () => {
+    setSuccessMessage(false);
+  };
+  
+  return (
+    <MainCard title="Upload Document">
+      {errorMessage && <MuiAlert severity="error">{errorMessage}</MuiAlert>}
+      
+      <form onSubmit={handleSubmit}>
+        <Grid container spacing={3}>
+          {/* Name Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Document Name"
+              name="name"
+              value={documentDetails.name}
+              onChange={handleChange}
+              required
+            />
+          </Grid>
+
+          {/* Description Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Description"
+              name="description"
+              value={documentDetails.description}
+              onChange={handleChange}
+              multiline
+              rows={4}
+              required
+            />
+          </Grid>
+
+          {/* Date Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Date"
+              name="date"
+              type="date"
+              value={documentDetails.date}
+              onChange={handleChange}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              required
+            />
+          </Grid>
+
+          {/* Category Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              select
+              label="Category"
+              name="category"
+              value={documentDetails.category}
+              onChange={handleChange}
+              required
+            >
+              <MenuItem value="Quote">Quote</MenuItem>
+              <MenuItem value="CS">CS</MenuItem>
+              <MenuItem value="Invoice">Invoice</MenuItem>
+            </TextField>
+          </Grid>
+
+          {/* File Attachment Field */}
+          <Grid item xs={12}>
+            <Button
+              variant="outlined"
+              component="label"
+              color={documentDetails.attachment ? 'primary' : 'error'} // Show button in red if no file is attached
+            >
+              Attach File *
+              <input
+                type="file"
+                hidden
+                onChange={handleFileChange}
+              />
+            </Button>
+            {documentDetails.attachment && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Attached: {documentDetails.attachment.name}
+              </Typography>
+            )}
+          </Grid>
+
+          {/* Extra Notes Field */}
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Extra Notes"
+              name="extraNotes"
+              value={documentDetails.extraNotes}
+              onChange={handleChange}
+              multiline
+              rows={4}
+            />
+          </Grid>
+
+          {/* Submit Button */}
+          <Grid item xs={12}>
+            <Stack direction="row" justifyContent="flex-end" spacing={2}>
+              <Button variant="contained" color="primary" type="submit">
+                Upload
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
+      </form>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={successMessage}
+        autoHideDuration={6000}
+        onClose={handleClose}
+      >
+        <MuiAlert onClose={handleClose} severity="success" sx={{ width: '100%' }}>
+          Document uploaded successfully!
+        </MuiAlert>
+      </Snackbar>
+    </MainCard>
+  );
+\src\pages\Upload-document\document-upload.jsx"
+
+import { createBrowserRouter } from 'react-router-dom';
+
+// project import
+import MainRoutes from './MainRoutes';
+import LoginRoutes from './LoginRoutes';
+
+// ==============================|| ROUTING RENDER ||============================== //
+
+const router = createBrowserRouter([MainRoutes, LoginRoutes]);
+
+export default router;
+"\src\routes\index.jsx"
+
+
+import { lazy } from 'react';
+
+// project import
+import Loadable from 'components/Loadable';
+import MinimalLayout from 'layout/MinimalLayout';
+
+// render - login
+const AuthLogin = Loadable(lazy(() => import('pages/authentication/login')));
+const AuthRegister = Loadable(lazy(() => import('pages/authentication/register')));
+
+// ==============================|| AUTH ROUTING ||============================== //
+
+const LoginRoutes = {
+  path: '/',
+  element: <MinimalLayout />,
+  children: [
+    {
+      path: '/login',
+      element: <AuthLogin />
+    },
+    {
+      path: '/register',
+      element: <AuthRegister />
+    }
+  ]
+};
+
+export default LoginRoutes;
+"\src\routes\LoginRoutes.jsx"
+
+import { lazy } from 'react';
+
+// project import
+import Loadable from 'components/Loadable';
+import Dashboard from 'layout/Dashboard';
+import DocumentUploadPage from '../pages/Upload-document/document-upload';
+import DocumentReviewPage from '../pages/Document-review/document-review';
+import AuditInterface from '../pages/audit-interface/audit-interface';
+import AllNotifications from '../pages/All-notifications/all-notifications';
+import Adduser from '../pages/Add-user/add-user';
+
+
+const Color = Loadable(lazy(() => import('pages/component-overview/color')));
+const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
+const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
+const DashboardDefault = Loadable(lazy(() => import('pages/dashboard/index')));
+
+// render - sample page
+const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
+
+// ==============================|| MAIN ROUTING ||============================== //
+
+const MainRoutes = {
+  path: '/',
+  element: <Dashboard />,
+  children: [
+    {
+      path: '/',
+      element: <DashboardDefault />
+    },
+    {
+      path: 'color',
+      element: <Color />
+    },
+    {
+      path: 'dashboard',
+      children: [
+        {
+          path: 'default',
+          element: <DashboardDefault />
+        }
+      ]
+    },
+    {
+      path: 'sample-page',
+      element: <SamplePage />
+    },
+    {
+      path: 'shadow',
+      element: <Shadow />
+    },
+    {
+      path: 'typography',
+      element: <Typography />
+    },
+    {
+      path: 'document-upload',
+      element: <DocumentUploadPage />
+    },
+    {
+      path: 'document-review',
+      element: <DocumentReviewPage />
+    },
+    {
+      path: 'audit-finance-interface',
+      element: <AuditInterface />
+    },
+    {
+      path: 'all-notifications',
+      element: <AllNotifications />
+    },
+    {
+      path: 'add-user',
+      element: <Adduser />
+    }
+  ]
+};
+
+export default MainRoutes;
+"\src\routes\MainRoutes.jsx"
+
+import { RouterProvider } from 'react-router-dom';
+
+// project import
+import router from 'routes';
+import ThemeCustomization from 'themes';
+
+import ScrollTop from 'components/ScrollTop';
+
+// ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
+
+export default function App() {
+  return (
+    <ThemeCustomization>
+      <ScrollTop>
+        <RouterProvider router={router} />
+      </ScrollTop>
+    </ThemeCustomization>
+  );
+}
+"\src\App.jsx"
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+
+// scroll bar
+import 'simplebar-react/dist/simplebar.min.css';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+
+// google-fonts
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/700.css';
+
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
+
+import '@fontsource/public-sans/400.css';
+import '@fontsource/public-sans/500.css';
+import '@fontsource/public-sans/600.css';
+import '@fontsource/public-sans/700.css';
+
+// project import
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+
+// ==============================|| MAIN - REACT DOM RENDER ||============================== //
+
+root.render(<App />);
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
+"\src\index.jsx"
+
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const bcrypt = require('bcrypt'); // Import bcrypt for password hashing
+const jwt = require('jsonwebtoken'); // Import jsonwebtoken for JWT creation
+const path = require('path');
+
+// Initialize Express
+const app = express();
+const port = process.env.PORT || 5000;
+
+const cors = require('cors');
+app.use(cors());
+
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Middleware
+app.use(bodyParser.json());
+
+// Setup multer for file uploads
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname); // Save with the original name
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017');
+
+const db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', () => {
+    console.log('Connected to the MongoDB database');
+});
+
+// Define a schema
+const docuSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    date: { type: Date, required: true },
+    category: { type: String, required: true },
+    extranotes: { type: String },
+    attachment: { type: String }, // This will store the path to the uploaded file
+    status: { type: String, default: 'none' }, // Default status set to 'none'
+    statusHistory: [
+        {
+            date: { type: Date, default: Date.now },
+            status: { type: String, required: true },
+            timestamp: { type: Date, default: Date.now } // Automatically capture the timestamp
+        }
+    ],
+    paymentDetails: {
+        amount: { type: Number },
+        paymentDate: { type: Date },
+        bankName: { type: String },
+        transactionId: { type: String }
+    }
+});
+
+// Define a model based on the schema
+const Docu = mongoose.model('Docu', docuSchema);
+
+// POST request to add a new document with an attachment
+app.post('/docu', upload.single('attachment'), async (req, res) => {
+    const { name, description, date, category, extranotes, status } = req.body;
+    const attachment = req.file ? req.file.path : null;
+
+    // Create a new document instance
+    const newDocu = new Docu({
+        name,
+        description,
+        date,
+        category,
+        extranotes,
+        attachment,
+        status: status || 'none', // Use provided status or default to 'none'
+        statusHistory: [{ status: status || 'none' }] // Initialize with the current status
+    });
+
+    try {
+        // Save the document to the collection
+        const savedDocu = await newDocu.save();
+        res.status(201).json(savedDocu);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+// GET request to retrieve all documents from the collection
+app.get('/docu', async (req, res) => {
+    try {
+        const allDocuments = await Docu.find();
+        res.json(allDocuments);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET request to retrieve a single document by ID
+app.get('/docu/:id', async (req, res) => {
+    try {
+        const document = await Docu.findById(req.params.id);
+        if (document) {
+            res.json(document);
+        } else {
+            res.status(404).json({ message: 'Document not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT request to update document status and add to status history
+app.put('/docu/:id', async (req, res) => {
+    try {
+        const { status } = req.body;
+        const document = await Docu.findById(req.params.id);
+
+        if (document) {
+            document.status = status;
+            document.statusHistory.push({ status, timestamp: new Date() });
+
+            const updatedDocument = await document.save();
+            res.json(updatedDocument);
+        } else {
+            res.status(404).json({ message: 'Document not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// PUT request to process payment and update payment details
+app.put('/docu/:id/payment', async (req, res) => {
+    try {
+        const { amount, paymentDate, bankName, transactionId } = req.body;
+        const document = await Docu.findById(req.params.id);
+
+        if (document) {
+            document.paymentDetails = {
+                amount,
+                paymentDate,
+                bankName,
+                transactionId
+            };
+
+            document.status = 'Paid';
+            document.statusHistory.push({ status: 'Paid', timestamp: new Date() });
+
+            const updatedDocument = await document.save();
+            res.json(updatedDocument);
+        } else {
+            res.status(404).json({ message: 'Document not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET request to retrieve all documents where status is 'none'
+app.get('/docu/status/none', async (req, res) => {
+    try {
+        const documents = await Docu.find({ status: 'none' });
+        res.json(documents);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+//user stuff
+// User Schema
+const userSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    role: { type: String, required: true },
+    password: { type: String, required: true }
+});
+
+// Define a User model based on the schema
+const User = mongoose.model('User', userSchema);
+
+
+
+// POST request to add a new user
+app.post('/users', async (req, res) => {
+    const { name, email, role, password } = req.body;
+
+    try {
+        // Create a new user instance and save to the database
+        const newUser = new User({ name, email, role, password });
+        const savedUser = await newUser.save();
+        res.status(201).json(savedUser);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Compare the provided password with the hashed password
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+
+        // Create a JWT token
+        const token = jwt.sign({ id: user._id, role: user.role }, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMzQ1LCJ1c2VybmFtZSI6ImpvaG5fZG9lIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzIzMzkxMzI5LCJleHAiOjE3MjMzOTQ5Mjl9.R3Llo3umxLVmnrggC7Rdy9VKbgjt_n_z2ckDepCMz-s',
+             { expiresIn: '1h' });
+
+        // Return the token and user information
+        res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+app.get('/login', async (req, res) => {
+    const { email, password } = req.query;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Check if the password matches (Note: In a real-world app, passwords should be hashed)
+        if (user.password !== password) {
+            return res.status(401).json({ message: 'Invalid credentials' });
+        }
+
+        // Generate a JWT token
+        const token = jwt.sign(
+            {
+                userId: user._id,
+                username: user.name,
+                role: user.role
+            },
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMzQ1LCJ1c2VybmFtZSI6ImpvaG5fZG9lIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzIzMzkxMzI5LCJleHAiOjE3MjMzOTQ5Mjl9.R3Llo3umxLVmnrggC7Rdy9VKbgjt_n_z2ckDepCMz-s', // Replace with your actual secret key
+            { expiresIn: '1h' } // Token expires in 1 hour
+        );
+
+        // Return the token
+        res.json({ token });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+const auth = (req, res, next) => {
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).json({ message: 'No token, authorization denied' });
+
+    try {
+        const decoded = jwt.verify(token, 'your_jwt_secret');
+        req.user = decoded;
+        next();
+    } catch (err) {
+        res.status(400).json({ message: 'Token is not valid' });
+    }
+};
+
+app.get('/profile', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        res.json(user);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET request to retrieve all users
+app.get('/users', async (req, res) => {
+    try {
+        const allUsers = await User.find();
+        res.json(allUsers);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET request to retrieve a single user by ID
+app.get('/users/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// DELETE request to delete a user by ID
+app.delete('/users/:id', async (req, res) => {
+    try {
+        const user = await User.findByIdAndDelete(req.params.id);
+        if (user) {
+            res.json({ message: 'User deleted' });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+"\src\ser.js"
