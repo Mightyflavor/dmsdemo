@@ -15,7 +15,7 @@ import Dot from 'components/@extended/Dot';
 
 const headCells = [
   { id: 'tracking_no', align: 'left', disablePadding: false, label: 'Tracking No.' },
-  { id: 'name', align: 'left', disablePadding: true, label: 'Product Name' },
+  { id: 'name', align: 'left', disablePadding: true, label: 'Document Name' },
   { id: 'carbs', align: 'left', disablePadding: false, label: 'Status' },
   { id: 'protein', align: 'right', disablePadding: false, label: 'Invoice Worth' }
 ];
