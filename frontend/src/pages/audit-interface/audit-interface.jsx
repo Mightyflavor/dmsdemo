@@ -36,7 +36,7 @@ export default function AuditFinancePage() {
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        const response = await fetch('https://dmsdemo-1.onrender.com/docu');
+        const response = await fetch('https://dmsdemo-wt6x.onrender.com/docu');
         if (!response.ok) {
           throw new Error('Failed to fetch documents');
         }
@@ -58,7 +58,7 @@ export default function AuditFinancePage() {
         ...currentDocument,
         statusHistory: [...currentDocument.statusHistory, { status: selectedStatus, timestamp: new Date() }],
       };
-      const response = await fetch(`https://dmsdemo-1.onrender.com/docu/${currentDocument._id}`, {
+      const response = await fetch(`https://dmsdemo-wt6x.onrender.com/docu/${currentDocument._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -86,7 +86,7 @@ export default function AuditFinancePage() {
 
   const handleProcessPayment = async () => {
     try {
-      const response = await fetch(`https://dmsdemo-1.onrender.com/docu/${currentDocument._id}/payment`, {
+      const response = await fetch(`https://dmsdemo-wt6x.onrender.com/docu/${currentDocument._id}/payment`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -78,7 +78,7 @@ export default function OrderTable() {
 
   useEffect(() => {
     // Fetch data from your backend API
-    axios.get('https://dmsdemo-1.onrender.com/docu')
+    axios.get('https://dmsdemo-wt6x.onrender.com/docu')
       .then(response => {
         setRows(response.data);
       })

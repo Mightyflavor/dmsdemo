@@ -63,7 +63,7 @@ export default function DocumentUploadPage() {
     }
   
     try {
-      const response = await fetch('https://dmsdemo-1.onrender.com/docu', {
+      const response = await fetch('https://dmsdemo-wt6x.onrender.com/docu', {
         method: 'POST',
         body: formData,
       });
