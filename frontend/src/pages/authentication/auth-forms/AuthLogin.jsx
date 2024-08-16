@@ -44,7 +44,7 @@ export default function AuthLogin({ isDemo = false }) {
 
   const handleLogin = async (values, { setErrors, setSubmitting }) => {
     try {
-      const response = await axios.get('http://localhost:5000/login', {
+      const response = await axios.get('https://dmsdemo-wt6x.onrender.com/login', {
         params: {
           email: values.email,
           password: values.password
